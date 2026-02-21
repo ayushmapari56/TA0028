@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './App.css';
+
+const API_BASE_URL = 'http://localhost:8000';
 
 function App() {
   const [file, setFile] = useState(null);
-  const [analysisStatus, setAnalysisStatus] = useState(null); // 'idle', 'uploading', 'analyzing', 'complete'
+  const [analysisStatus, setAnalysisStatus] = useState('idle'); // idle, uploading, analyzing, complete
   const [result, setResult] = useState(null);
   const [currentPage, setCurrentPage] = useState('media'); // 'media' or 'audio'
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
 
   const resetAnalysis = () => {
     setAnalysisStatus('idle');
@@ -17,74 +16,56 @@ function App() {
     setResult(null);
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   const startAnalysis = async () => {
     if (!file) return;
+
     setAnalysisStatus('uploading');
 
+    // Prepare form data
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      // 1. Upload file
-      const uploadResponse = await fetch('http://localhost:8000/api/v1/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) throw new Error('Upload failed');
-      const uploadData = await uploadResponse.json();
-      const jobId = uploadData.job_id;
+      // 1. Upload
+      const uploadRes = await axios.post(`${API_BASE_URL}/upload`, formData);
+      const jobId = uploadRes.data.job_id;
 
       setAnalysisStatus('analyzing');
 
-      // 2. Poll for status
+      // 2. Poll for results
       const pollInterval = setInterval(async () => {
-        try {
-          const statusResponse = await fetch(`http://localhost:8000/api/v1/status/${jobId}`);
-          if (!statusResponse.ok) throw new Error('Status check failed');
-
-          const statusData = await statusResponse.json();
-
-          if (statusData.status === 'completed') {
-            clearInterval(pollInterval);
-            setAnalysisStatus('complete');
-            setResult({
-              score: statusData.authenticity_score,
-              classification: statusData.classification,
-              fingerprint: statusData.fingerprint_score,
-              status: statusData.classification === 'Deepfake' ? 'Manipulated' : (statusData.classification === 'Filtered' ? 'Likely Authentic' : 'Authentic'),
-              manipulations: statusData.artifacts_detected,
-              details: statusData.message
-            });
-          } else if (statusData.status === 'failed') {
-            clearInterval(pollInterval);
-            setAnalysisStatus('idle');
-            alert(`Analysis failed: ${statusData.message}`);
-          }
-        } catch (err) {
-          console.error('Polling error:', err);
+        const statusRes = await axios.get(`${API_BASE_URL}/status/${jobId}`);
+        if (statusRes.data.status === 'completed') {
           clearInterval(pollInterval);
+          setResult(statusRes.data.result);
+          setAnalysisStatus('complete');
+        } else if (statusRes.data.status === 'failed') {
+          clearInterval(pollInterval);
+          alert('Analysis failed');
+          setAnalysisStatus('idle');
         }
       }, 2000);
 
     } catch (error) {
-      console.error('Analysis error:', error);
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please ensure the backend is running.');
       setAnalysisStatus('idle');
-      alert('Failed to start analysis. Is the backend running?');
     }
   };
 
   return (
-    <div className="container fade-in">
-      {/* Decorative Background Elements */}
-      <div className="animate-float" style={{ position: 'fixed', top: '10%', left: '5%', width: '150px', height: '150px', background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', zIndex: -1 }}></div>
-      <div className="animate-float" style={{ position: 'fixed', bottom: '15%', right: '8%', width: '200px', height: '200px', background: 'radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%)', zIndex: -1, animationDelay: '2s' }}></div>
-
+    <div className="app-container">
       <nav className="navbar">
-        <div className="logo" onClick={() => setCurrentPage('media')} style={{ cursor: 'pointer' }}>
-          <span style={{ fontSize: '1.8rem' }}>🛡️</span> RAKSHAK
+        <div className="logo" onClick={() => { setCurrentPage('media'); resetAnalysis(); }} style={{ cursor: 'pointer' }}>
+          <span style={{ color: 'var(--primary)', fontSize: '1.8rem' }}>🛡️</span> RAKSHAK
         </div>
-        <div className="nav-links" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
           <span
             className={`nav-item ${currentPage === 'media' ? 'active' : ''}`}
             onClick={() => { setCurrentPage('media'); resetAnalysis(); }}
@@ -106,52 +87,71 @@ function App() {
       </nav>
 
       <main>
-        <div className="hero-section" style={{ textAlign: 'center', marginBottom: '5rem' }}>
-          <div className="tag tag-success" style={{ marginBottom: '1.5rem', padding: '0.4rem 1rem' }}>V1.2.0 LIVE • ADVANCED FORENSICS</div>
-          {currentPage === 'media' ? (
-            <>
-              <h1>Deepfakes Hide in Shadows. <br /> We Illuminate the Truth.</h1>
-              <p style={{ color: 'var(--text-dim)', fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
-                Multi-modal ensemble models designed to expose synthetic media manipulations with sub-pixel precision.
-              </p>
-            </>
-          ) : (
-            <>
-              <h1>Voice Clones Hide in Shadows. <br /> We Illuminate the Truth.</h1>
-              <p style={{ color: 'var(--text-dim)', fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
-                Analyze pitch patterns and frequency domain anomalies to distinguish between authentic human speech and AI clones.
-              </p>
-            </>
-          )}
+        <div className="hero-section" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+          <div className="hero-content">
+            <div className="hero-text-side">
+              <div className="tag tag-success" style={{ marginBottom: '1.5rem', padding: '0.4rem 1rem' }}>V1.2.0 LIVE • ADVANCED FORENSICS</div>
+              {currentPage === 'media' ? (
+                <>
+                  <h1 style={{ textAlign: 'left' }}>Protect Your <span style={{ color: 'var(--primary)' }}>Digital Identity</span> <br /> with AI Detection</h1>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '1.2rem', maxWidth: '600px', lineHeight: '1.6', marginBottom: '2.5rem', textAlign: 'left' }}>
+                    Defend against the rising threat of deepfakes with RAKSHAK's cutting-edge AI technology, designed for seamless integration and real-time accuracy.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 style={{ textAlign: 'left' }}>Secure Your <span style={{ color: 'var(--primary)' }}>Voice Identity</span> <br /> with Spectral Scan</h1>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '1.2rem', maxWidth: '600px', lineHeight: '1.6', marginBottom: '2.5rem', textAlign: 'left' }}>
+                    Identify AI-cloned audio and synthetic voice synthesis with our advanced frequency-domain forensic engine.
+                  </p>
+                </>
+              )}
 
-          {!analysisStatus || analysisStatus === 'idle' ? (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '3rem' }}>
-              <button
-                onClick={() => { setCurrentPage('media'); resetAnalysis(); }}
-                className="btn-primary"
-                style={{
-                  background: currentPage === 'media' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                  border: currentPage === 'media' ? 'none' : '1px solid var(--glass-border)',
-                  padding: '1rem 2rem',
-                  fontSize: '1rem'
-                }}
-              >
-                <span>🎬</span> Media Scan
-              </button>
-              <button
-                onClick={() => { setCurrentPage('audio'); resetAnalysis(); }}
-                className="btn-primary"
-                style={{
-                  background: currentPage === 'audio' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                  border: currentPage === 'audio' ? 'none' : '1px solid var(--glass-border)',
-                  padding: '1rem 2rem',
-                  fontSize: '1rem'
-                }}
-              >
-                <span>🎙️</span> Voice Scan
-              </button>
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
+                <button
+                  onClick={() => { setCurrentPage('media'); resetAnalysis(); }}
+                  className="btn-primary"
+                  style={{
+                    background: currentPage === 'media' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                    border: currentPage === 'media' ? 'none' : '1px solid var(--glass-border)',
+                    padding: '1rem 2rem',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Media Scan
+                </button>
+                <button
+                  onClick={() => { setCurrentPage('audio'); resetAnalysis(); }}
+                  className="btn-primary"
+                  style={{
+                    background: currentPage === 'audio' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                    border: currentPage === 'audio' ? 'none' : '1px solid var(--glass-border)',
+                    padding: '1rem 2rem',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Voice Scan
+                </button>
+              </div>
             </div>
-          ) : null}
+
+            <div className="hero-visual">
+              <div className="moving-face-container">
+                <img
+                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop"
+                  className="hero-face"
+                  alt="Forensic Subject"
+                />
+                <div className="scanning-mesh"></div>
+                <div className="scan-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="scroll-indicator" onClick={() => window.scrollTo({ top: 900, behavior: 'smooth' })}>
+            <span>SCROLL DOWN</span>
+            <div className="scroll-dot"></div>
+          </div>
         </div>
 
         <div className="upload-container glass-card" style={{ padding: '4rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
@@ -248,7 +248,7 @@ function App() {
 
                     <div className="metric-grid">
                       <div className="metric-card">
-                        <div className="metric-value">{result.fingerprint}%</div>
+                        <div className="metric-value">{result.fingerprint_score}%</div>
                         <div className="metric-label">Neural Fingerprint</div>
                       </div>
                       <div className="metric-card">

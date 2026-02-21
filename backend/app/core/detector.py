@@ -132,12 +132,16 @@ class DeepfakeDetector:
         # In a real model, we would use librosa to extract spectrograms/MFCCs
         # For this demo, generate a score based on a "neural voice" signature simulation
         score = 82.4
+        fingerprint = 18.2 # Low fingerprint for authentic-sounding voice
+        classification = "Authentic" if score > 75 else "Deepfake"
         
         return {
             "authenticity_score": score,
-            "manipulation_type": "None" if score > 75 else "AI Voice Clone",
+            "classification": classification,
+            "fingerprint_score": fingerprint,
+            "manipulation_type": "None" if classification == "Authentic" else "AI Voice Clone",
             "artifacts_detected": ["Spectrogram phase mismatch"] if score < 90 else [],
-            "details": "Audio forensics scan complete. Analyzed MFCC consistency and pitch modulation variance. No high-confidence synthetic patterns detected."
+            "details": "Audio forensics scan complete. Analyzed MFCC consistency and pitch modulation variance. No high-confidence synthetic patterns detected. " + (f"Neural Fingerprint: {fingerprint}%" if fingerprint > 0 else "")
         }
 
     def predict(self, file_path: str, content_type: str) -> Dict[str, Any]:
