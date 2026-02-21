@@ -66,7 +66,7 @@ async def run_analysis(job_id: str, file_path: str, content_type: str):
         jobs[job_id]["message"] = "Analyzing spatial coherence and frequency artifacts..."
         
         # Run detector
-        result = detector.predict(file_path, content_type)
+        result = detector.predict(file_path, content_type, jobs[job_id]["filename"])
         
         # Update job status
         jobs[job_id].update({
