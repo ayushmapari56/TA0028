@@ -468,3 +468,56 @@
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
 }
+
+/* Result Page Enhancements */
+.report-view-active {
+  max-width: 1100px !important;
+  padding: 3rem !important;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-view-page {
+  width: 100%;
+  animation: slideUp 0.6s ease-out;
+}
+
+.main-forensic-card {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.metric-panel {
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+.metric-item {
+  border-left: 3px solid var(--primary);
+  padding-left: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.metric-item:hover {
+  transform: translateX(10px);
+}
+
+.report-header h2 {
+  letter-spacing: -1px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .report-body-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
