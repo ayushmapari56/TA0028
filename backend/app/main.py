@@ -5,7 +5,7 @@ import uvicorn
 from app.api.endpoints import router as api_router
 
 app = FastAPI(
-    title="AegisDeep API",
+    title="RAKSHAK API",
     description="Advanced Deepfake Detection System API",
     version="1.0.0"
 )
@@ -23,7 +23,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "AegisDeep API is operational", "status": "online"}
+    return {"message": "RAKSHAK API is operational", "status": "online"}
 
 @app.post("/analyze")
 async def analyze_media(file: UploadFile = File(...)):

@@ -20,6 +20,8 @@ class AnalysisResult(BaseModel):
     status: str
     filename: str
     authenticity_score: Optional[float] = None
+    classification: Optional[str] = None  # 'Authentic', 'Filtered', 'Deepfake'
+    fingerprint_score: Optional[float] = None
     manipulation_type: Optional[str] = None
     artifacts_detected: List[str] = []
     message: str
@@ -70,6 +72,8 @@ async def run_analysis(job_id: str, file_path: str, content_type: str):
         jobs[job_id].update({
             "status": "completed",
             "authenticity_score": result.get("authenticity_score"),
+            "classification": result.get("classification"),
+            "fingerprint_score": result.get("fingerprint_score"),
             "manipulation_type": result.get("manipulation_type"),
             "artifacts_detected": result.get("artifacts_detected", []),
             "message": result.get("details", "Analysis complete.")
