@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+temp_uploads/
+
+# Node
+node_modules/
+.npm
+dist-ssr
+*.local
+.eslintcache
+
+# Vite
+dist/
+.vite
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# AegisDeep Specific
+backend/temp_uploads/
+frontend/node_modules/
