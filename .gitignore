@@ -46,3 +46,8 @@ Desktop.ini
 # AegisDeep Specific
 backend/temp_uploads/
 frontend/node_modules/
+
+# Datasets
+DFD_manipulated_sequences/
+DFD_original sequences/
+temp_uploads/
