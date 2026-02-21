@@ -107,30 +107,18 @@ function App() {
                 </>
               )}
 
-              <div style={{ display: 'flex', gap: '1.5rem' }}>
+              <div className="mode-switches">
                 <button
                   onClick={() => { setCurrentPage('media'); resetAnalysis(); }}
-                  className="btn-primary"
-                  style={{
-                    background: currentPage === 'media' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                    border: currentPage === 'media' ? 'none' : '1px solid var(--glass-border)',
-                    padding: '1rem 2rem',
-                    fontSize: '1rem'
-                  }}
+                  className={`btn-mode ${currentPage === 'media' ? 'active' : 'inactive'}`}
                 >
-                  Media Scan
+                  <span>🖼️</span> Images/Video
                 </button>
                 <button
                   onClick={() => { setCurrentPage('audio'); resetAnalysis(); }}
-                  className="btn-primary"
-                  style={{
-                    background: currentPage === 'audio' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                    border: currentPage === 'audio' ? 'none' : '1px solid var(--glass-border)',
-                    padding: '1rem 2rem',
-                    fontSize: '1rem'
-                  }}
+                  className={`btn-mode ${currentPage === 'audio' ? 'active' : 'inactive'}`}
                 >
-                  Voice Scan
+                  <span>🎙️</span> Audio
                 </button>
               </div>
             </div>
@@ -148,11 +136,82 @@ function App() {
             </div>
           </div>
 
-          <div className="scroll-indicator" onClick={() => window.scrollTo({ top: 900, behavior: 'smooth' })}>
+          <div className="scroll-indicator" onClick={() => {
+            const showcase = document.querySelector('.forensic-showcase');
+            if (showcase) showcase.scrollIntoView({ behavior: 'smooth' });
+          }}>
             <span>SCROLL DOWN</span>
             <div className="scroll-dot"></div>
           </div>
         </div>
+
+        {/* --- Forensic Showcase Section (Inspiration UI) --- */}
+        <section className="forensic-showcase fade-in">
+          <div className="forensic-grid">
+            <div className="boy-image-container">
+              <img src="/forensic-boy.webp" className="boy-image" alt="Forensic Target" />
+
+              {/* Defense Overlays */}
+              <div className="poi" style={{ top: '35%', left: '48%' }}></div>
+              <div className="forensic-overlay overlay-1">
+                <div className="detector-label">Defense Detected</div>
+                <div className="detector-value">
+                  99.9<span style={{ fontSize: '0.8rem', color: 'var(--primary)', marginLeft: '2px' }}>%</span>
+                </div>
+                <div className="detector-desc">Likelihood of AI-driven facial manipulation detected by system.</div>
+              </div>
+
+              <div className="poi" style={{ bottom: '40%', right: '40%' }}></div>
+              <div className="forensic-overlay overlay-2">
+                <div className="detector-label">Neural Fingerprint</div>
+                <div className="detector-value">
+                  Active
+                </div>
+                <div className="detector-desc">High-frequency spectral anomalies identified in skin texture.</div>
+              </div>
+            </div>
+
+            <div className="showcase-text-side">
+              <div className="tag tag-success" style={{ marginBottom: '1rem' }}>Industrial Standard</div>
+              <h2>Advanced XAI-Powered <br /> <span style={{ color: 'var(--primary)' }}>Forensic Detection</span></h2>
+              <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', marginBottom: '3rem', lineHeight: '1.6' }}>
+                Our deep learning models go beyond simple pixel analysis. We trace the generative fingerprints left by GANs and Diffusion models to provide evidence-grade results.
+              </p>
+
+              <div className="feature-list">
+                <div className="feature-item">
+                  <div className="feature-icon">🛡️</div>
+                  <div>
+                    <div style={{ fontWeight: '700', marginBottom: '0.2rem' }}>Real-time Defense</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-dim)' }}>Scales effortlessly with your needs without disrupting workflows.</div>
+                  </div>
+                </div>
+                <div className="feature-item">
+                  <div className="feature-icon">🔍</div>
+                  <div>
+                    <div style={{ fontWeight: '700', marginBottom: '0.2rem' }}>Spectral Identification</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-dim)' }}>Scans frequency domains to identify synthetic voice and video artifacts.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mode-switches">
+                <button
+                  className={`btn-mode ${currentPage === 'media' ? 'active' : 'inactive'}`}
+                  onClick={() => { setCurrentPage('media'); resetAnalysis(); }}
+                >
+                  <span>🖼️</span> Images/Video
+                </button>
+                <button
+                  className={`btn-mode ${currentPage === 'audio' ? 'active' : 'inactive'}`}
+                  onClick={() => { setCurrentPage('audio'); resetAnalysis(); }}
+                >
+                  <span>🎙️</span> Audio
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="upload-container glass-card" style={{ padding: '4rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
           {!analysisStatus || analysisStatus === 'idle' ? (
