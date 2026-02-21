@@ -42,6 +42,7 @@ class DeepfakeDetector:
 
         core_entropy = get_entropy(core)
         periph_entropy = get_entropy(periph)
+        ghosting_val = abs(core_entropy - periph_entropy)
         
         # 3. Neural Fingerprint Heuristic (Kaggle/DFD Specific)
         # Calibrated via DFD Dataset: Sharpness < 56.88 and Ghosting > 1.85
@@ -53,10 +54,11 @@ class DeepfakeDetector:
 
         # AI images/videos often have compressed spatial frequencies (softer edges)
         is_too_soft = laplacian_var < 56.88 # Calibrated threshold
+        is_too_perfect = laplacian_var > 600 and core_entropy < 6.5 # Defining missing variable
         is_gan_glitch = is_ghosting_detected and laplacian_var < 60.0
         
         fingerprint = 0.0
-        if is_ai_hint or is_too_soft or is_gan_glitch:
+        if is_ai_hint or is_too_soft or is_gan_glitch or is_too_perfect:
             # The DFD/Kaggle images fall into these categories
             if is_gan_glitch: fingerprint = 94.5
             elif is_too_soft: fingerprint = 82.1
